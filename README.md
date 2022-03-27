@@ -1,135 +1,57 @@
-# `cortex-m-quickstart`
 
-> A template for building applications for ARM Cortex-M microcontrollers
+Why Rust for embedded?
+Rust for embedded makes the claim to be more memory safe than C, saving developers a lot of debugging time and raising awareness when reading from unitialized memory areas.  A couple language features that help create better hardware abstraction layers are intriguing.
 
-This project is developed and maintained by the [Cortex-M team][team].
+traits: a means of defining what a type can do. For instance, in embedded systems, traits can describe which CPU pins can be configured as PWM outputs and how they should be configured. They are essentially the data sheet, encoded in Rust.
+generics:  They tell Rust that a function can take anything it likes, just as long as the type implements certain traits. For example, generics enable a developer to write a function to which any pin can be passed, as long as the pin can be configured as a PWM output. We can write a single function that can control any given PWM pin.
 
-## Dependencies
+This readme contains a brief description of how I used rust to generate an embedded Hello World for a Cortex-M3 processor.
+QEMU was used to run the application since I do not have access to a Cortex-M3 development board.
 
-To build embedded programs using this template you'll need:
+The development board in the tuturial I followed(if I wanted to run on actual hardware) is an STM32F3Discovery Board.
+I was actually quite how easy it was to create an application for embedded with Rust.
 
-- Rust 1.31, 1.30-beta, nightly-2018-09-13 or a newer toolchain. e.g. `rustup
-  default beta`
+I chose VSCode as my editor because I am familiar with it, and in reading the documentation, there appears to be built-in   debugging support for rust.
 
-- The `cargo generate` subcommand. [Installation
-  instructions](https://github.com/ashleygwilliams/cargo-generate#installation).
+Steps taken to get the hello world up and running:
+1.  Used the rust book tutorial to get started.
+    https://docs.rust-embedded.org/book/intro/index.html
 
-- `rust-std` components (pre-compiled `core` crate) for the ARM Cortex-M
-  targets. Run:
+2.  Forked the rust-embedded hello world example into my own github repo.
+    https://github.com/rust-embedded/cortex-m-quickstart
 
-``` console
-$ rustup target add thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf
-```
+3.  Cloned the newly forked repo onto my macbook
+    git clone https://github.com/chadkidd/rust-hello-world
 
-## Using this template
+4.  Install rustup:
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-**NOTE**: This is the very short version that only covers building programs. For
-the long version, which additionally covers flashing, running and debugging
-programs, check [the embedded Rust book][book].
+5.  Added cortex-m3 target
+    rustup target add thumbv7m-none-eabi
 
-[book]: https://rust-embedded.github.io/book
+6.  Updated author and application name in the cargo.toml file
 
-0. Before we begin you need to identify some characteristics of the target
-  device as these will be used to configure the project:
+7.  Built the application
+    cargo build --target thumbv7m-none-eabi
 
-- The ARM core. e.g. Cortex-M3.
+8.  If successful, hello application now exists at:  target/thumbv7m-none-eabi/debug/examples/hello
 
-- Does the ARM core include an FPU? Cortex-M4**F** and Cortex-M7**F** cores do.
+9.  Installed Qemu - on Mac, this was as simple as:  
+    brew install qemu
 
-- How much Flash memory and RAM does the target device has? e.g. 256 KiB of
-  Flash and 32 KiB of RAM.
+10. Ran the application with qemu
+    qemu-system-arm \
+      -cpu cortex-m3 \
+      -machine lm3s6965evb \
+      -nographic \
+      -semihosting-config enable=on,target=native \
+      -kernel target/thumbv7m-none-eabi/debug/examples/hello
 
-- Where are Flash memory and RAM mapped in the address space? e.g. RAM is
-  commonly located at address `0x2000_0000`.
 
-You can find this information in the data sheet or the reference manual of your
-device.
+Whala - hello world succeeds!
 
-In this example we'll be using the STM32F3DISCOVERY. This board contains an
-STM32F303VCT6 microcontroller. This microcontroller has:
 
-- A Cortex-M4F core that includes a single precision FPU
-
-- 256 KiB of Flash located at address 0x0800_0000.
-
-- 40 KiB of RAM located at address 0x2000_0000. (There's another RAM region but
-  for simplicity we'll ignore it).
-
-1. Instantiate the template.
-
-``` console
-$ cargo generate --git https://github.com/rust-embedded/cortex-m-quickstart
- Project Name: app
- Creating project called `app`...
- Done! New project created /tmp/app
-
-$ cd app
-```
-
-2. Set a default compilation target. There are four options as mentioned at the
-   bottom of `.cargo/config`. For the STM32F303VCT6, which has a Cortex-M4F
-   core, we'll pick the `thumbv7em-none-eabihf` target.
-
-``` console
-$ tail -n6 .cargo/config
-```
-
-``` toml
-[build]
-# Pick ONE of these compilation targets
-# target = "thumbv6m-none-eabi"    # Cortex-M0 and Cortex-M0+
-# target = "thumbv7m-none-eabi"    # Cortex-M3
-# target = "thumbv7em-none-eabi"   # Cortex-M4 and Cortex-M7 (no FPU)
-target = "thumbv7em-none-eabihf" # Cortex-M4F and Cortex-M7F (with FPU)
-```
-
-3. Enter the memory region information into the `memory.x` file.
-
-``` console
-$ cat memory.x
-/* Linker script for the STM32F303VCT6 */
-MEMORY
-{
-  /* NOTE 1 K = 1 KiBi = 1024 bytes */
-  FLASH : ORIGIN = 0x08000000, LENGTH = 256K
-  RAM : ORIGIN = 0x20000000, LENGTH = 40K
-}
-```
-
-4. Build the template application or one of the examples.
-
-``` console
-$ cargo build
-```
-
-## VS Code
-
-This template includes launch configurations for debugging CortexM programs with Visual Studio Code located in the `.vscode/` directory.  
-See [.vscode/README.md](./.vscode/README.md) for more information.  
-If you're not using VS Code, you can safely delete the directory from the generated project.
-
-# License
-
-This template is licensed under either of
-
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
-  http://www.apache.org/licenses/LICENSE-2.0)
-
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-
-at your option.
-
-## Contribution
-
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
-dual licensed as above, without any additional terms or conditions.
-
-## Code of Conduct
-
-Contribution to this crate is organized under the terms of the [Rust Code of
-Conduct][CoC], the maintainer of this crate, the [Cortex-M team][team], promises
-to intervene to uphold that code of conduct.
-
-[CoC]: https://www.rust-lang.org/policies/code-of-conduct
-[team]: https://github.com/rust-embedded/wg#the-cortex-m-team
+Next steps for investigation:
+1.  Get a rust example working on an actual STM32F4 board, which I do happen to have in my collection.  See how easy it might be to add on external hardware / bring in other types of drivers for a more complex application.
+2.  Learn more about how Rust might be used in embedded projects.  My appetite has been whetted with how easy it was to create a hello world application.  Try out the traits and generics.
+3.  Attempt to get the VSCode debug capability working.
