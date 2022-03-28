@@ -15,31 +15,39 @@ I chose VSCode as my editor because I am familiar with it, and in reading the do
 
 Steps taken to get the hello world up and running:
 1.  Used the rust book tutorial to get started.
+
     https://docs.rust-embedded.org/book/intro/index.html
 
 2.  Forked the rust-embedded hello world example into my own github repo.
+
     https://github.com/rust-embedded/cortex-m-quickstart
 
 3.  Cloned the newly forked repo onto my macbook
+
     git clone https://github.com/chadkidd/rust-hello-world
 
 4.  Install rustup:
+
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 5.  Added cortex-m3 target
+
     rustup target add thumbv7m-none-eabi
 
 6.  Updated author and application name in the cargo.toml file
 
 7.  Built the application
+
     cargo build --target thumbv7m-none-eabi
 
 8.  If successful, hello application now exists at:  target/thumbv7m-none-eabi/debug/examples/hello
 
 9.  Installed Qemu - on Mac, this was as simple as:  
+
     brew install qemu
 
 10. Ran the application with qemu
+
     qemu-system-arm \
       -cpu cortex-m3 \
       -machine lm3s6965evb \
